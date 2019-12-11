@@ -1,0 +1,30 @@
+version: '2'
+
+services:
+  test-web:
+    build: ./app
+    container_name: test-web
+    command: npm start
+    ports:
+      - "8080:8080"
+
+
+  shibboleth-sp:
+    image: jefferyb/shibboleth-sp
+    container_name: shibboleth-sp
+    environment:
+      - SERVICE_TO_PROTECT=test-web
+      - SERVICE_PORT=8080
+
+      - HOSTNAME=${HOSTNAME}
+      - IDP_ENTITY_ID=urn:${DOMAIN}
+      - IDP_METADATA_URL=https://${DOMAIN}/samlp/metadata/${CLIENT_ID}
+      - SUPPORT_EMAIL=root@localhost
+      - SHIB_METADATA_BACKUP_URL=https://${DOMAIN}/samlp/metadata/${CLIENT_ID}
+      - SHIB_DOWNLOAD_METADATA=true
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    links:
+      - test-web
